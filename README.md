@@ -64,17 +64,17 @@
   };
 
   function Duck(){}
-  Duck.prototype.sound=()=>{
+  Duck.prototype.sound = () => {
     console.info('gagaga');
   }
   function Chicken(){}  
-  Chicken.prototype.sound=()=>{
+  Chicken.prototype.sound = () => {
     console.info('gegege');
   }
 
   /*
   function Dog(){}  
-  Dog.prototype.sound=()=>{
+  Dog.prototype.sound = () => {
     console.info('wangwangwang');
   }
   */
