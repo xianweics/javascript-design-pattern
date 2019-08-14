@@ -118,7 +118,7 @@
     };
 
     each([1, 2, 3], (i, item) => {
-      if(n > 2){
+      if(i > 2){
         return false;
       }
       console.info(i, item);
