@@ -1,4 +1,4 @@
-#  javascript设计模式
+#  JavaScript设计模式
 
 ## 1 原型继承（面向对象的JavaScript）
 
@@ -18,7 +18,7 @@
 		- JavaScript给对象提供一个名为`__proto__`的隐藏属性，某个对象的`__proto__`属性默认会指向它的构造器的原型对象`{constructor}.prototype`。
 		- 如果对象本身无法响应某个请求，它会把这个请求委托给它自己的原型。
 
-### 特点：
+### 特点
 
 - 没有提供传统面向对象语言中的类式继承，而是通过原型委托的方式来实现对象与对象之间的继承。
 - 没有在语言层面提供对抽象类和接口的支持。
@@ -92,7 +92,7 @@
 	- 使对象内部的变化对其他对象而已是不可见的。对象对它内部的行为负责。
 	- 使对象之间的耦合变得松散，对象之间只通过暴露的API接口来通信。
 - 封装数据：
-	- 例子：
+	- 例子
     ```javascript
     const obj = (() => {
       const _name = 'John';
@@ -107,7 +107,7 @@
     console.info(obj._name); // undefined
     ```
 - 封装实现
-	- 例子：
+	- 例子
     ```javascript
     const each = (arr, cb) => {
       for(let i = 0, l = arr.length; i < l; i++){
@@ -124,4 +124,172 @@
       console.info(i, item);
     });
     ```
+
+## 2 this、call、bind和apply
+
+### this
+
+- 特点：基于函数的执行环境绑定的。
+
+#### 作为对象的方法调用
+
+- `this`指向该对象
+- 例子
+	```javascript
+	const obj = {
+	  a: 1,
+	  getA(){
+	    console.info(this === obj); // true
+	    console.info(this.a); // a
+	  }
+	};
+	```
 	
+#### 作为普通函数调用
+
+- `this`指向全局
+- 例子
+	```javascript
+	window.name = 'global name';
+	const obj = {
+	  name: 'obj name',
+	  getName(){
+	    return this.name;
+	  }
+	};
+	
+	const getName = obj.getName;
+	console.info(getName()); // global name
+	```
+
+#### 构造函数调用
+
+- `this`通常情况下，指向返回的对象。
+- 如果构造器返回一个`object`类型的对象，那么会返回该`object`对象。
+- 例子
+	```javascript
+	function Fn(){
+	  this.name = 'my name';
+	  return {
+	    name: 'new name'
+	  }
+	}
+	
+	const fn = new Fn();
+	console.info(fn.name); // new name
+	```
+
+#### Function.prototype.call或Function.prototype.apply调用
+
+- 可动态改变`this`的指向
+- 例子
+	```javascript
+	const obj1 = {
+	  name: 'obj1',
+	  getName(){
+	    return this.name;
+	  }
+	};
+	const obj2 = {
+	  name: 'obj2'
+	};
+	
+	console.info(obj1.getName()); // obj1
+	console.info(obj1.getName.call(obj2)); // obj2
+	```
+
+#### 修复丢失的this
+
+- 例子
+	```javascript
+	const getId = document.getElementById;
+	
+	getId('div'); // error: getId is not function
+	```
+	修正
+	```javascript
+	document.getElementById = ((fn) =>{
+	  return () => fn.apply(document, arguments);
+	})(document.getElementById);
+	
+	const getId = document.getElementById;
+	console.info(getId('div')); // show div dom
+	```
+
+
+
+### bind
+
+- 实现bind
+	```javascript
+	Function.prototype.bind = function(){
+	  var that = this;
+	  var context = [].shift.call(arguments);
+	  var args = [].slice.call(arguments);
+	  return function(){
+	    var newArgs = [].slice.call(arguments);
+	    return that.apply(context, [].concat(args, newArgs));
+	  }
+	}
+	```
+
+### 数组push分析
+
+- v8源码
+	```javascript
+	function ArrayPush(){
+	  var n = TO_UNIT32(this.length);
+	  var m = %_ArgumentsLength();
+	  for(var i = 0; i < m; i++){
+	    this[i + n] = %_Arguments[i];
+	  }
+	  this.length = n + m;
+	  return this.length;
+	}
+	```
+- 使用Array.prototype.push条件
+	- 对象本身要可以存取属性
+	- 对象的`length`属性可读写
+- 例子
+	```javascript
+	const obj = {};
+	Array.prototype.push.call(obj, 'first');
+	console.info(obj); // { 0: 'first', length: 1 }
+	
+	const a = 1;
+	Array.prototype.push.call(a, 'first');
+	console.info(a); // undefined    => 对象本身不能存取属性
+	
+	function fn(){};
+	Array.prototype.push.call(fn, 'first');
+	console.info(a); // undefined    => 函数的length是一个只读属性，表示形参的个数
+	```
+
+## 3 闭包和高阶函数
+
+### 闭包
+
+#### 作用域
+
+- 函数可以用来创造函数作用域。ES6中，使用`let`或`const`可以创造块级作用域。
+- 一般情况下，对于全局变量而言，生命周期是永久的，除非主动销毁这个全局变量；而对于函数内用`var`/`const`/`let`关键字声明的局部变量而言，当退出函数时，它们都会随着函数调用的结束而销毁。
+
+#### 闭包的使用
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
