@@ -95,16 +95,16 @@
 	- 例子
     ```javascript
     const obj = (() => {
-      const _name = 'John';
+      const __name = 'John';
       return {
         getName(){
-          return _name;
+          return __name;
         }
       }
     })();
 
     console.info(obj.getName()); // 'John';
-    console.info(obj._name); // undefined
+    console.info(obj.__name); // undefined
     ```
 - 封装实现
 	- 例子
@@ -415,6 +415,211 @@
 		console.info(arr);
 		```
 - 函数节流
+	- 原理：延迟当前函数的执行，如果该次延迟还没有完成，那么忽略接下来该函数的请求。
+	- 场景
+		- `window.onresize`
+		- `mousemove`
+		- 上传进度
+	- 例子
+		```javascript
+		function throttle(fn, interval = 500){
+		  const that = fn;
+		  let timer = null;
+		  let firstTime = true;
+		  
+		  return function(){
+		    const args = arguments;
+		    if(firstTime){
+		      that.apply(this, args);
+		      return firstTime = false;
+		    }
+		   if(timer){
+		     return false;
+		   }
+		   timer = setTimeout(()=>{
+		     clearTimeout(timer);
+		     timer = null;
+		     that.apply(this, args);
+		   },interval);  
+		  }
+		}
+		
+		window.onresize = (() => {
+		  console.info('resize');
+		}, 300);
+		```
+- 分时函数
+	- 原理：分批完成任务。
+	- 场景：有大量的任务处理，但会影响性能。
+	- 例子
+		- 原方式
+			```javascript
+			let arr = [];
+      for (let i = 1; i <= 1000; i++) {
+        arr.push(i); //假设arr装载了100个好友数据
+      }
+      function renderFriendList(data) {
+        for (let i = 0, l = data.length; i < l; i++) {
+          const div = document.createElement('div');
+          div.innerHTML = i;
+          document.body.appendChild(div)
+        }
+      }
+      
+			renderFriendList(arr)
+			```
+			
+    - 改进：分批处理
+      ```javascript
+      let arr = [];
+      for (let i = 1; i <= 1000; i++) {
+        arr.push(i);
+      }
+      
+      function timeChunk(arr, fn, count = 1) {
+        let obj;
+        let timer = null;
+        function start(){
+          for (let i = 0; i < Math.min(count, arr.length); i++) {
+            fn(arr.shift());
+          }
+        };
+        return () => {
+          timer = setInterval(() => {
+            if (arr.length === 0) {
+              return clearInterval(timer);
+            }
+            start();
+          }, 200)
+        }
+      }
+      timeChunk(arr, (num) => {
+        const div = document.createElement('div');
+        div.innerHTML = num;
+        document.body.appendChild(div);
+      }, 8)();
+      ```
+- 惰性加载函数
+	- 例子
+		- 原方式
+    	```javascript
+      function addEvent(ele, type, handler){
+        if(window.addEventListener){
+          return ele.addEventListener(type, handler, false);
+        }else if(window.attachEvent){
+          return ele.attachEvent('on' + type, handler);
+        }
+      }
+      ```
+      > 存在的问题：当它每次被调用的时候都会执行里面的`if`分支。
+    - 改进一
+			```javascript
+      const addEvent = (() => {
+        if(window.addEventListener){
+          return (ele, type, handler) => ele.addEventListener(type, handler, false);
+        }else if(window.attachEvent){
+          return (ele, type, handler) => ele.attachEvent('on' + type, handler);
+        }
+      })();
+      ```
+      > 存在的问题：也许从头到尾都没使用这个函数，但代码加载的时候就立刻执行一次判断。
+    - 改进二
+    	```javascript
+    	let addEvent = (ele, type, handler) => {
+    	   if(window.addEventListener){
+    	    return addEvent = (ele, type, handler) => ele.addEventListener(type, handler, false);
+    	  }else if(window.attachEvent){
+    	    return addEvent = (ele, type, handler) => ele.attachEvent('on' + type, handler);
+    	  }
+    	  addEvent(ele, type, handler);
+    	};
+    	```
+
+## 4 单例模式
+
+- 定义：保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+
+### 面向对象实现单例
+
+- 例子
+	```javascript
+	function Singleton(name){
+	  this.name = name;
+	  this.instance = null;
+	}
+	
+	Singleton.getInstance = (name) => {
+	   return this.instance || (this.instance = new Singleton(name));
+	}
+	
+	const s1 = Singleton.getInstance('instance1');
+	const s2 = Singleton.getInstance('instance2');
+	console.info(s1 === s2); // true
+	```
+
+### JavaScript中的单例模式
+
+> 传统的单例模式实现在JavaScript中并不适用。
+> 单例模式的核心：确保只有一个实例，并且提供全局访问。
+> 全局变量不是单例模式，但经常会把全局变量当成单例来使用
+> 全局变量存在很多问题，它容易造成命名空间污染。
+
+- 降低全局变量造成命名污染
+	- 使用命名空间
+		- 例子
+			```javascript
+			// 静态命名空间
+			const namespace = {
+			  a(){},
+			  b(){}
+			};
+			
+			// 动态命名空间
+			const app = {};
+			app.namespace = (name) => {
+				const part = name.split('.');
+			  let cur = app;
+				let hasInclude = true;
+			  part.forEach((item) => {
+			    if(!cur[item]){
+			      hasInclude = false;
+			      cur[item] = {};
+			    }
+					cur = cur[item];
+			  });
+			  if(hasInclude){
+			    throw new Error('Namespace is included');
+			  }
+			};
+			```
+- 使用闭包封装私有变量
+	- 例子
+		```javascript
+		const user = (() => {
+		  const __name = 'name';
+		  const __age = 10;
+		  return {
+		    getUserInfo(){
+		      return {
+		        name: __name, 
+		        age: __age
+		      };
+		    }
+		  };
+		})();
+		```
+- 通用单例模式
+	- 例子
+  	```javascript
+  	function singleton(fn){
+  	  let result;
+  	  return function(){
+  	    return result || (result = fn.apply(this, arguments));
+  	  }
+  	}
+  	```
+> 创建对象和管理单例的职责分别放在不同的方法中，这两个方法组合起来才能发挥单例的真正作用。
+
 
 
 
