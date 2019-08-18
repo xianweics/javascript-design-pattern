@@ -131,92 +131,76 @@
 
 - 特点：基于函数的执行环境绑定的。
 
-#### 作为对象的方法调用
+- 作为对象的方法调用：`this`指向该对象
+  - 例子
+    ```javascript
+    const obj = {
+      a: 1,
+      getA(){
+        console.info(this === obj); // true
+        console.info(this.a); // a
+      }
+    };
+    ```
+- 作为普通函数调用：`this`指向全局
+  - 例子
+    ```javascript
+    window.name = 'global name';
+    const obj = {
+      name: 'obj name',
+      getName(){
+        return this.name;
+      }
+    };
 
-- `this`指向该对象
-- 例子
-	```javascript
-	const obj = {
-	  a: 1,
-	  getA(){
-	    console.info(this === obj); // true
-	    console.info(this.a); // a
-	  }
-	};
-	```
-	
-#### 作为普通函数调用
+    const getName = obj.getName;
+    console.info(getName()); // global name
+    ```
+- 构造函数调用：`this`通常情况下，指向返回的对象。如果构造器返回一个`object`类型的对象，那么会返回该`object`对象。
+  - 例子
+    ```javascript
+    function Fn(){
+      this.name = 'my name';
+      return {
+        name: 'new name'
+      }
+    }
 
-- `this`指向全局
-- 例子
-	```javascript
-	window.name = 'global name';
-	const obj = {
-	  name: 'obj name',
-	  getName(){
-	    return this.name;
-	  }
-	};
-	
-	const getName = obj.getName;
-	console.info(getName()); // global name
-	```
+    const fn = new Fn();
+    console.info(fn.name); // new name
+    ```
+- Function.prototype.call或Function.prototype.apply：可动态改变`this`的指向
+  - 例子
+    ```javascript
+    const obj1 = {
+      name: 'obj1',
+      getName(){
+        return this.name;
+      }
+    };
+    const obj2 = {
+      name: 'obj2'
+    };
 
-#### 构造函数调用
+    console.info(obj1.getName()); // obj1
+    console.info(obj1.getName.call(obj2)); // obj2
+    ```
+- 修复丢失的this
+  - 例子
+    ```javascript
+    const getId = document.getElementById;
 
-- `this`通常情况下，指向返回的对象。
-- 如果构造器返回一个`object`类型的对象，那么会返回该`object`对象。
-- 例子
-	```javascript
-	function Fn(){
-	  this.name = 'my name';
-	  return {
-	    name: 'new name'
-	  }
-	}
-	
-	const fn = new Fn();
-	console.info(fn.name); // new name
-	```
+    getId('div'); // error: getId is not function
+    ```
+    修正
+    ```javascript
+    document.getElementById = ((fn) =>{
+      return () => fn.apply(document, arguments);
+    })(document.getElementById);
 
-#### Function.prototype.call或Function.prototype.apply调用
-
-- 可动态改变`this`的指向
-- 例子
-	```javascript
-	const obj1 = {
-	  name: 'obj1',
-	  getName(){
-	    return this.name;
-	  }
-	};
-	const obj2 = {
-	  name: 'obj2'
-	};
-	
-	console.info(obj1.getName()); // obj1
-	console.info(obj1.getName.call(obj2)); // obj2
-	```
-
-#### 修复丢失的this
-
-- 例子
-	```javascript
-	const getId = document.getElementById;
-	
-	getId('div'); // error: getId is not function
-	```
-	修正
-	```javascript
-	document.getElementById = ((fn) =>{
-	  return () => fn.apply(document, arguments);
-	})(document.getElementById);
-	
-	const getId = document.getElementById;
-	console.info(getId('div')); // show div dom
-	```
-
-
+    const getId = document.getElementById;
+    console.info(getId('div')); // show div dom
+    ```
 
 ### bind
 
@@ -269,16 +253,168 @@
 
 ### 闭包
 
-#### 作用域
+- 作用域
+  - 函数可以用来创造函数作用域。ES6中，使用`let`或`const`可以创造块级作用域。
+  - 一般情况下，对于全局变量而言，生命周期是永久的，除非主动销毁这个全局变量；而对于函数内用`var`/`const`/`let`关键字声明的局部变量而言，当退出函数时，它们都会随着函数调用的结束而销毁。
+- 闭包的作用
+	- 保持变量持久化
+		- 原方式：打印每个对应`div`的index
+      ```javascript
+      var nodes = document.getElementsByTagName('div');
+      for(var i =0; i < nodes.length; i++){
+        nodes[i].onclick = function(){
+          console.info(i);
+        }
+      }
+      ```
+      >	无论点击哪个`div`，最后结果都是5。
+		- 改进：通过闭包把每次循环的`i`值都封闭起来
+      ```javascript
+      var nodes = document.getElementsByTagName('div');
+      for(var i =0; i < nodes.length; i++){
+        (function(j){
+          nodes[j].onclick = function(){
+            console.info(j);
+          }})(i);
+      }
+      ```
+      > 依次点击`div`，会显示1，2，3，4。
+	- 封装变量
+		- 原方式：缓存乘法结果
+      ```javascript
+      const cache = {};
+      function multi(...rest){
+        const args = rest.join(',');
+        if(args in cache){
+          return cache[args];
+        }
+        let result = 1;
+        for(let i = 0; i < rest.length; i++){
+          result *= rest[i];
+        }
+        return cache[args] = result;
+      };
+      ```
+			> `cache`变量与`multi`函数一起平行暴露在全局作用域下
+		- 改进：把`cache`变量封装到`multi`函数中
+      ```javascript
+      const multi = (() => {
+        const cache = {};
+        const calc = (args) => {
+            return args.reduce((a, b) => a * b);
+        }
+        return (...rest) => {
+          const args = rest.join(',');
+          if(args in cache){
+            return cache[args];
+          }
+          return cache[args] = calc(rest);
+        }
+      })();
+      ```
+- 闭包和面向对象设计
+	- 对象以方法的形式包含了过程，而闭包是在过程中以环境的形式包含了数据；通常用面向对象思想能实现的功能，闭包也能实现，反之亦然。
+	- 例子
+		- 闭包
+      ```javascript
+      const extent = () => {
+        let value = 0;
+        return {
+          call(){
+            value++;
+            console.info(value);
+          }
+        }
+      }
+      const extent1 = extent();
+      extent1.call(); // 1
+      extent1.call(); // 2
+      ```
+  	- 面向对象
+      ```javascript
+      const extent = {
+        value: 0,
+        call(){
+           this.value++;
+           console.info(this.value);
+        }
+      };
+      extent.call(); // 1
+      extent.call(); // 2
 
-- 函数可以用来创造函数作用域。ES6中，使用`let`或`const`可以创造块级作用域。
-- 一般情况下，对于全局变量而言，生命周期是永久的，除非主动销毁这个全局变量；而对于函数内用`var`/`const`/`let`关键字声明的局部变量而言，当退出函数时，它们都会随着函数调用的结束而销毁。
+      // 或者
+      function Extent(){
+        this.value = 0;
+      }
+      Extent.prototype.call = function(){
+        this.value++;
+        console.info(this.value);
+      }
+      ```
+- 闭包与内存管理
+	- 把变量放在闭包中和放在全局作用域，对于内存的影响是一致的，不能就说成是内存泄漏，如果将来需要回收这些变量，只需手动把这些变量设置为`null`。
+	- 跟闭包和内存泄漏有关系的地方：使用闭包的同时容易形成循环引用，如果闭包的作用域链中保存一些DOM的节点，这个时候可能造成内存泄漏。但这本身不是闭包造成的，也并非JavaScript的问题。
 
-#### 闭包的使用
+### 高阶函数
 
-
-
-
+- 满足的条件
+	- 函数可以作为参数被传递。例如：回调函数
+	- 函数可以作为返回值输出
+- currying
+	- 含义：部分求值。一个柯里化函数首先会接受一些参数，接受了这些参数后，该函数并不会立即求值，而是继续返回另一个函数，刚才传入的参数在函数内部形成闭包被保存起来，等函数真正需要求值的时候，之前传入的所有参数会被一次性求值。
+	- 例子：计算每天的开销
+		- 无柯里化
+			```javascript
+			let totalCost = 0;
+			function cost(money){
+			  totalCost += money;
+			}
+			cost(100);
+			cost(200);
+			cost(300);
+			console.info(totalCost); // 600
+			```
+		- 柯里化
+			```javascript
+			function currying(fn){
+			  const args = [];
+			  return (..rest) => {
+			    if(rest.length === 0){
+			      return fn(rest);
+			    }else{
+			      args.push[...rest];
+			      return arguments.callee;
+			    }
+			  }
+			}
+			function cost(arr){
+			  return arr.reduce((a, b) => a + b);
+			}
+			
+			const totalCost = currying(cost);
+			totalCost(100);
+			totalCost(200);
+			totalCost(300);
+			console.info(totalCost()); // 600
+			```
+- uncurrying
+	- 含义：使本来作为特定对象所拥有的功能的函数可以被任意对象所用，即鸭子类型思想。
+	- 例子
+		```javascript
+		Function.prototype.uncurrying = function(){
+		  const that = this;
+		  return (...rest) => {
+		    const context = rest.shift(0,1);
+		    return that.apply(context, rest);
+		  }
+		}
+		
+		const push = [].push.uncurrying();
+		const arr = [1,2,3];
+		push(arr, 4);
+		console.info(arr);
+		```
+- 函数节流
 
 
 
