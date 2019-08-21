@@ -592,22 +592,22 @@
 			  }
 			};
 			```
-- 使用闭包封装私有变量
-	- 例子
-		```javascript
-		const user = (() => {
-		  const __name = 'name';
-		  const __age = 10;
-		  return {
-		    getUserInfo(){
-		      return {
-		        name: __name, 
-		        age: __age
-		      };
-		    }
-		  };
-		})();
-		```
+  - 使用闭包封装私有变量
+    - 例子
+      ```javascript
+      const user = (() => {
+        const __name = 'name';
+        const __age = 10;
+        return {
+          getUserInfo(){
+            return {
+              name: __name, 
+              age: __age
+            };
+          }
+        };
+      })();
+      ```
 - 通用单例模式
 	- 例子
   	```javascript
@@ -619,6 +619,109 @@
   	}
   	```
 > 创建对象和管理单例的职责分别放在不同的方法中，这两个方法组合起来才能发挥单例的真正作用。
+
+## 5 策略模式
+
+### 定义
+
+- 定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。
+
+### 目的
+
+- 将算法的使用（不变）与算法的实现分离（可变）开来。
+
+### 组成
+
+- 环境类：接受用户的请求，随后将请求委托给某一个策略类。
+- 策略类：封装了具体的算法，并负责具体的计算过程。
+
+### 例子
+
+- 原方式
+  ```javascript
+  const calcBonus = (level, salary) => {
+  	if(level === 'A'){
+  		return salary * 4;
+  	}
+  	if(level === 'B'){
+  		return salary * 3;
+  	}
+  	if(level === 'C'){
+  		return salary * 1;
+  	}
+  };
+  
+	calcBonus('A', 1000); // 4000
+	```
+	- 存在的问题
+		- `calcBonus`函数比较大，包含较多的`if-else`。
+		- 函数违法开放-封闭性原则。
+		- 算法复用性差
+- 改善
+	- 例子：面向对象的实现
+  	```javascript
+    // 策略类
+    function performanceA(){};
+    performanceS.prototype.calc = (salary) => {
+      return salary * 4;
+    };
+
+    function performanceB(){};
+    performanceB.prototype.calc = (salary) => {
+      return salary * 3;
+    };
+
+    function performanceC(){};
+    performanceC.prototype.calc = (salary) => {
+      return salary * 1;
+    };
+
+    // 环境类
+    function Bonus(){
+      this.salary = null;
+      this.strategy = null;
+    };
+    Bonus.prototype.setSalary = function(salary){
+      this.salary = salary;
+    };
+    Bonus.prototype.setStrategy = function(strategy){
+      this.strategy = strategy;
+    };
+    Bonus.prototype.getBonus = function(){
+      return this.strategy.calc(this.salary);
+    };
+
+    const bonus = new Bonus();
+    bonus.setSalary(1000);
+    bonus.setStrategy(new performanceA());
+    console.info(bonus.getBonus()); // 4000
+    ```
+	- 例子：JavaScript模式
+			```javascript
+		const strategies = {
+		  'A': (salary) => salary * 4,
+		  'B': (salary) => salary * 3,
+		  'C': (salary) => salary * 1,
+		}；
+		const calcBonus = (level, salary) => {
+		  return strategies[level](salary);
+		};
+		console.info(calcBonus('A', 1000)); // 4000
+		```
+
+### 优点
+
+- 利用组合、委托和多态等思想，可以有效地避免多重条件语句。
+- 符合开放-封闭原则，易于切换、理解、扩展。
+- 复用性强，避免重复的复制粘贴。
+
+### 缺点
+
+- 增加许多策略类或者策略对象。
+- 必须了解所有的策略类，并且了解各个策略之间的不同点，这样才能选择合适的策略。
+
+
+
 
 
 
