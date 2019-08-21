@@ -697,7 +697,7 @@
     console.info(bonus.getBonus()); // 4000
     ```
 	- 例子：JavaScript模式
-			```javascript
+		```javascript
 		const strategies = {
 		  'A': (salary) => salary * 4,
 		  'B': (salary) => salary * 3,
