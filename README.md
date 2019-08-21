@@ -50,7 +50,7 @@
 
 - JavaScript对象的多态是与生俱来的。
 
-- 例子：
+- 例子
 	```javascript
   function makeSound(animal){
     if(animal instanceof Duck){
@@ -73,7 +73,7 @@
   // makeSound(new Dog());
 	```
 	
-	优化
+优化
 	
   ```javascript
   function makeSound(animal){
@@ -219,14 +219,14 @@
 
 - 修复丢失的this
   
-	- 例子
+  - 例子
     ```javascript
     const getId = document.getElementById;
 
     getId('div'); // error: getId is not function
     ```
     
-		修正
+	修正
     
 		```javascript
     document.getElementById = ((fn) =>{
@@ -312,7 +312,7 @@
       }
       ```
       
-			>	无论点击哪个`div`，最后结果都是5。
+  >	无论点击哪个`div`，最后结果都是5。
 			
 		- 改进：通过闭包把每次循环的`i`值都封闭起来
       ```javascript
@@ -325,7 +325,7 @@
       }
       ```
       
-			> 依次点击`div`，会显示1，2，3，4。
+	> 依次点击`div`，会显示1，2，3，4。
 			
 	- 封装变量
 	
@@ -345,7 +345,7 @@
       };
       ```
 			
-			> `cache`变量与`multi`函数一起平行暴露在全局作用域下。
+	> `cache`变量与`multi`函数一起平行暴露在全局作用域下。
 			
 		- 改进：把`cache`变量封装到`multi`函数中
       ```javascript
@@ -532,9 +532,9 @@
 	- 场景：有大量的任务处理，但会影响性能。
 	
 	- 例子
-		
-		- 原方式
-			```javascript
+  
+    - 原方式	
+      ```javascript
 			let arr = [];
       for (let i = 1; i <= 1000; i++) {
         arr.push(i); //假设arr装载了100个好友数据
@@ -585,7 +585,7 @@
 	
 	- 例子
 		
-		- 原方式
+    - 原方式
     	```javascript
       function addEvent(ele, type, handler){
         if(window.addEventListener){
@@ -598,7 +598,7 @@
       
 			> 存在的问题：当它每次被调用的时候都会执行里面的`if`分支。
     
-		- 改进一
+    - 改进一
 			```javascript
       const addEvent = (() => {
         if(window.addEventListener){
@@ -611,7 +611,7 @@
       
 			> 存在的问题：也许从头到尾都没使用这个函数，但代码加载的时候就立刻执行一次判断。
     
-		- 改进二
+    - 改进二
     	```javascript
     	let addEvent = (ele, type, handler) => {
     	   if(window.addEventListener){
@@ -659,7 +659,7 @@
 	
 	- 使用命名空间
 		
-		- 例子
+    - 例子
 			```javascript
 			// 静态命名空间
 			const namespace = {
@@ -688,7 +688,7 @@
   
 	- 使用闭包封装私有变量
     
-		- 例子
+    - 例子
       ```javascript
       const user = (() => {
         const __name = 'name';
@@ -801,9 +801,10 @@
     bonus.setStrategy(new performanceA());
     console.info(bonus.getBonus()); // 4000
     ```
-	
-	- 例子：JavaScript模式
-		```javascript
+   
+ - 例子：JavaScript模式
+		
+    ```javascript
 		const strategies = {
 		  'A': (salary) => salary * 4,
 		  'B': (salary) => salary * 3,
