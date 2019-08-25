@@ -286,19 +286,19 @@
 
 - 例子
 
-	```javascript
-	const obj = {};
-	Array.prototype.push.call(obj, 'first');
-	console.info(obj); // { 0: 'first', length: 1 }
+  ```javascript
+  const obj = {};
+  Array.prototype.push.call(obj, 'first');
+  console.info(obj); // { 0: 'first', length: 1 }
+  
+  const a = 1;
+  Array.prototype.push.call(a, 'first');
+  console.info(a); // undefined    => 对象本身不能存取属性
 
-	const a = 1;
-	Array.prototype.push.call(a, 'first');
-	console.info(a); // undefined    => 对象本身不能存取属性
-
-	function fn(){};
-	Array.prototype.push.call(fn, 'first');
-	console.info(a); // undefined    => 函数的length是一个只读属性，表示形参的个数
-	```
+  function fn(){};
+  Array.prototype.push.call(fn, 'first');
+  console.info(a); // undefined    => 函数的length是一个只读属性，表示形参的个数
+  ```
 
 ## 3 闭包和高阶函数
 
