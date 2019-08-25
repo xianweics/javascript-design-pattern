@@ -252,11 +252,11 @@
 
   ```javascript
   Function.prototype.bind = function(){
-    var that = this;
-    var context = [].shift.call(arguments);
-    var args = [].slice.call(arguments);
+    const that = this;
+    const context = [].shift.call(arguments);
+    const args = [].slice.call(arguments);
     return function(){
-      var newArgs = [].slice.call(arguments);
+      const newArgs = [].slice.call(arguments);
       return that.apply(context, [].concat(args, newArgs));
     }
   }
@@ -861,3 +861,149 @@
 - 增加许多策略类或者策略对象。
 
 - 必须了解所有的策略类，并且了解各个策略之间的不同点，这样才能选择合适的策略。
+
+## 6 代理模式
+
+### 含义
+
+- 为一个对象提供一个代用品或占位符，以便控制对它的访问。当客户不方便直接访问一个对象或者不满足需要的时候，提供一个替身对象来控制对这个对象的访问，客户实际上访问的是替身的对象。替身对象对请求做出了一些处理后，再把请求转发给本体对象。
+
+- 例子
+
+  - 无代理委托
+  
+    ```javascript
+    function Flower(){}
+    const xiaoming = {
+      sendFlower(target){
+        target.receiveFlower(new Flower());
+      }
+    };
+    const xiaohong = {
+      receiveFlower(flower){
+        console.info(flower); // flower constructor detail
+      }
+    };
+    
+    xiaoming.sendFlower(xiaohong);
+    ```
+  
+  - 代理
+    
+    ```javascript
+    function Flower(){}
+    const xiaoming = {
+      sendFlower(target){
+        target.receiveFlower(new Flower());
+      }
+    };
+    const proxyPerson = {
+      receiveFlower(flower){
+        xiaohong.receiveFlower(flower);
+      }
+    };
+    const xiaohong = {
+      receiveFlower(flower){
+        console.info(flower); // flower constructor detail
+      }
+    };
+        
+    xiaoming.sendFlower(proxyPerson);
+    ```
+    
+  - 保护代理
+  
+    - 含义：代理`proxyPerson`可以帮助`xiaohong`过滤掉一些请求，比如送花的人年龄太大或者`xiaohong`心情不好，这种请求就可以直接在代理`proxyPerson`中过滤掉。
+      
+    - 例子
+      
+      ```javascript
+      function Flower(){}
+      const xiaoming = {
+        sendFlower(target){
+          target.receiveFlower(new Flower());
+        }
+      };
+      const proxyPerson = {
+        receiveFlower(){
+          xiaohong.listenGoodMood(() => xiaohong.receiveFlower(new Flower()));
+        }
+      };
+      const xiaohong = {
+        receiveFlower(flower){
+          console.info(flower); // flower constructor detail
+        },
+        listenGoodMood(fn){
+          setTimeout(fn, 10000); // become good mood after 10 second;
+        }
+      };
+          
+      xiaoming.sendFlower(proxyPerson);
+      ```
+      
+  - 虚拟代理
+    
+    - 图片预加载例子
+      
+      - 无代理
+      
+        ```javascript
+        const myImage = (() => {
+          const imgNode = docuemnt.createElement('img');
+          document.body.appendChild(imgNode);
+          const img = new Image;
+          img.onload = () => imgNode.src = img.src;
+        
+          return {
+            setSrc(src){
+              imgNode.src = 'loading.gif';
+              imgNode.src = src;
+            }
+          };
+        })();
+        
+        myImage.setSrc('img1.jpg');
+        ```
+        
+        > `myImage`对象除了负责`img`节点的设置`src
+          `，还负责预加载图片。破坏单一原则（一个类而言，应该仅有一个引起它变化的原因。如果一个对象承担了多项职责，就意味着这个对象将变得庞大，引起它变化的原因可能很多）。
+
+        > 大多数情况下，违反其他任何原则，都会违反开放-封闭原则。 
+        
+      - 有代理
+            
+        ```javascript
+        const myImage = (() => {
+          const imgNode = document.createElement('img');
+          document.body.appendChild(imgNode);
+          
+          return {
+            setSrc(src){
+              imgNode.src = src;
+            }
+          };
+        })();
+        
+        const proxyImage = (() => {
+          const img = new Image;
+          img.onload = () => myImage.src = img.src;
+        
+          return {
+            setSrc(src){
+              imgNode.src = 'loading.gif';
+              img.src = src;
+            }
+          };
+        })();
+        
+        proxyImage.setSrc('img1.jpg');
+        ```
+        
+        
+   
+  
+
+
+
+
+
