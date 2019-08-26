@@ -522,24 +522,23 @@
     
     ```javascript
     function throttle(fn, interval = 500){
-      const that = fn;
       let timer = null;
       let firstTime = true;
     
-      return function(){
+      return (...rest) => {
         const args = arguments;
         if(firstTime){
-          that.apply(this, args);
+          fn(rest);
           return firstTime = false;
         }
-      if(timer){
-        return false;
-      }
-      timer = setTimeout(()=>{
-        clearTimeout(timer);
-        timer = null;
-        that.apply(this, args);
-      },interval);  
+        if(timer){
+          return false;
+        }
+        timer = setTimeout(()=>{
+          clearTimeout(timer);
+          timer = null;
+          fn(rest);
+        },interval);  
       }
     }
     
@@ -865,9 +864,7 @@
 
 ## 6 代理模式
 
-### 含义
-
-- 为一个对象提供一个代用品或占位符，以便控制对它的访问。当客户不方便直接访问一个对象或者不满足需要的时候，提供一个替身对象来控制对这个对象的访问，客户实际上访问的是替身的对象。替身对象对请求做出了一些处理后，再把请求转发给本体对象。
+- 含义：为一个对象提供一个代用品或占位符，以便控制对它的访问。当客户不方便直接访问一个对象或者不满足需要的时候，提供一个替身对象来控制对这个对象的访问，客户实际上访问的是替身的对象。替身对象对请求做出了一些处理后，再把请求转发给本体对象。
 
 - 例子
 
@@ -912,7 +909,7 @@
     xiaoming.sendFlower(proxyPerson);
     ```
     
-- 保护代理
+### 保护代理
   
   - 含义：代理`proxyPerson`可以帮助`xiaohong`过滤掉一些请求，比如送花的人年龄太大或者`xiaohong`心情不好，这种请求就可以直接在代理`proxyPerson`中过滤掉。
       
@@ -942,7 +939,7 @@
     xiaoming.sendFlower(proxyPerson);
     ```
       
-- 虚拟代理
+### 虚拟代理
     
   - 图片预加载例子
       
@@ -997,10 +994,78 @@
         
       proxyImage.setSrc('img1.jpg');
       ```
-        
-        
-   
+
+  - 资源懒性加载
   
+    - 例子
+    
+      ```javascript
+      const miniConsole = ((doc) => {
+        const cache = [];
+        const handler = (event => {
+          if(event.keyCode === 113){ // keycode f12
+             const script = doc.createElement('script');
+             script.onload = () => cache.forEach(fn => fn());
+          }
+          script.src = 'miniConsole.js';
+          doc.getElementByTagName('head')[0].appendChild(script);
+          doc.body.removeEventListener('keydown', handler); // miniConsole.js only load once
+        });
+        doc.body.addEventListener('keydown', handler, false);
+        
+        return {
+          log(...rest){
+            cache.push(() => miniConsole.log(rest));
+          }
+        }
+      })(document);
+      
+      // miniConsole code
+      const miniConsole = {
+        log(...rest){
+          // ...
+          console.info(rest); // 1
+        }
+      };
+      
+      miniConsole.log(1); // start to print log
+      ```        
+
+### 缓存代理
+
+  - 例子    
+    
+    ```javascript
+    function multi(...rest){
+      return rest.reduce((a, b) => a * b);
+    }
+    
+    function plus(...rest){
+      return rest.reduce((a, b) => a + b);
+    }
+    
+    function proxyFactory(fn){
+      const cache = [];
+      return (...rest) => {
+        const args = rest.join(',');
+        if(args in cache){
+          return cache[args];
+        }
+        return cache[args] = fn(rest);
+      };
+    }
+    
+    const proxyMulti = proxyFactory(multi);
+    const proxyPlus = proxyFactory(plus);
+    console.info(proxyMulti(1, 2, 3, 4)); // 24
+    console.info(proxyPlus(1, 2, 3, 4)); // 10
+    ``` 
+
+## 7 迭代器模式
+
+- 含义：提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部实现。
+
+
 
 
 
