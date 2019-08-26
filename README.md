@@ -8,7 +8,7 @@
 
 - 它是基于原型链的委托机制。
 
-### 原型继承基本规则M
+### 原型继承基本规则
 
 - 所有的数据都是对象。
 
@@ -686,33 +686,33 @@
 
   - 使用命名空间
 
-  - 例子
+    - 例子
     
-    ```javascript
-    // 静态命名空间
-    const namespace = {
-      a(){},
-      b(){}
-    };
+      ```javascript
+      // 静态命名空间
+      const namespace = {
+        a(){},
+        b(){}
+      };
     
-    // 动态命名空间
-    const app = {};
-    app.namespace = (name) => {
-      const part = name.split('.');
-      let cur = app;
-      let hasInclude = true;
-      part.forEach((item) => {
-        if(!cur[item]){
-          hasInclude = false;
-          cur[item] = {};
+      // 动态命名空间
+      const app = {};
+      app.namespace = (name) => {
+        const part = name.split('.');
+        let cur = app;
+        let hasInclude = true;
+        part.forEach((item) => {
+          if(!cur[item]){
+            hasInclude = false;
+            cur[item] = {};
+          }
+          cur = cur[item];
+        });
+        if(hasInclude){
+          throw new Error('Namespace is included');
         }
-        cur = cur[item];
-      });
-      if(hasInclude){
-        throw new Error('Namespace is included');
-      }
-    };
-    ```
+      };
+      ```
     
     - 使用闭包封装私有变量
 
@@ -736,6 +736,7 @@
 - 通用单例模式
 
   - 例子
+    
     ```javascript
     function singleton(fn){
       let result;
@@ -833,20 +834,20 @@
     console.info(bonus.getBonus()); // 4000
     ```
 
-- 例子：JavaScript模式
+  - 例子：JavaScript模式
 
-  ```javascript
-  const strategies = {
-    'A': (salary) => salary * 4,
-    'B': (salary) => salary * 3,
-    'C': (salary) => salary * 1,
-  }；
-  const calcBonus = (level, salary) => {
-    return strategies[level](salary);
-  };
+    ```javascript
+    const strategies = {
+      'A': (salary) => salary * 4,
+      'B': (salary) => salary * 3,
+      'C': (salary) => salary * 1,
+    }；
+    const calcBonus = (level, salary) => {
+      return strategies[level](salary);
+    };
 
-  console.info(calcBonus('A', 1000)); // 4000
-  ```
+    console.info(calcBonus('A', 1000)); // 4000
+    ```
 
 ### 优点
 
@@ -911,93 +912,91 @@
     xiaoming.sendFlower(proxyPerson);
     ```
     
-  - 保护代理
+- 保护代理
   
-    - 含义：代理`proxyPerson`可以帮助`xiaohong`过滤掉一些请求，比如送花的人年龄太大或者`xiaohong`心情不好，这种请求就可以直接在代理`proxyPerson`中过滤掉。
+  - 含义：代理`proxyPerson`可以帮助`xiaohong`过滤掉一些请求，比如送花的人年龄太大或者`xiaohong`心情不好，这种请求就可以直接在代理`proxyPerson`中过滤掉。
       
-    - 例子
+  - 例子
+      
+    ```javascript
+    function Flower(){}
+    const xiaoming = {
+      sendFlower(target){
+        target.receiveFlower(new Flower());       
+      }
+    };
+    const proxyPerson = {
+      receiveFlower(){
+        xiaohong.listenGoodMood(() => xiaohong.receiveFlower(new Flower()));      
+      }
+    };
+    const xiaohong = {
+      receiveFlower(flower){
+        console.info(flower); // flower constructor detai
+      },
+      listenGoodMood(fn){
+        setTimeout(fn, 10000); // become good mood after 10 second;
+      }
+    };
+          
+    xiaoming.sendFlower(proxyPerson);
+    ```
+      
+- 虚拟代理
+    
+  - 图片预加载例子
+      
+    - 无代理
       
       ```javascript
-      function Flower(){}
-      const xiaoming = {
-        sendFlower(target){
-          target.receiveFlower(new Flower());
-        }
-      };
-      const proxyPerson = {
-        receiveFlower(){
-          xiaohong.listenGoodMood(() => xiaohong.receiveFlower(new Flower()));
-        }
-      };
-      const xiaohong = {
-        receiveFlower(flower){
-          console.info(flower); // flower constructor detail
-        },
-        listenGoodMood(fn){
-          setTimeout(fn, 10000); // become good mood after 10 second;
-        }
-      };
-          
-      xiaoming.sendFlower(proxyPerson);
+      const myImage = (() => {
+        const imgNode = docuemnt.createElement('img');
+        document.body.appendChild(imgNode);
+        const img = new Image;
+        img.onload = () => imgNode.src = img.src;
+        
+        return {
+          setSrc(src){
+            imgNode.src = 'loading.gif';
+            imgNode.src = src;
+          }
+        };
+      })();
+      
+      myImage.setSrc('img1.jpg');
       ```
-      
-  - 虚拟代理
-    
-    - 图片预加载例子
-      
-      - 无代理
-      
-        ```javascript
-        const myImage = (() => {
-          const imgNode = docuemnt.createElement('img');
-          document.body.appendChild(imgNode);
-          const img = new Image;
-          img.onload = () => imgNode.src = img.src;
         
-          return {
-            setSrc(src){
-              imgNode.src = 'loading.gif';
-              imgNode.src = src;
-            }
-          };
-        })();
+      > `myImage`对象除了负责`img`节点的设置`src`，还负责预加载图片。破坏单一原则（一个类而言，应该仅有一个引起它变化的原因。如果一个对象承担了多项职责，就意味着这个对象将变得庞大，引起它变化的原因可能很多）。
+      > 大多数情况下，违反其他任何原则，都会违反开放-封闭原则。 
         
-        myImage.setSrc('img1.jpg');
-        ```
-        
-        > `myImage`对象除了负责`img`节点的设置`src
-          `，还负责预加载图片。破坏单一原则（一个类而言，应该仅有一个引起它变化的原因。如果一个对象承担了多项职责，就意味着这个对象将变得庞大，引起它变化的原因可能很多）。
-
-        > 大多数情况下，违反其他任何原则，都会违反开放-封闭原则。 
-        
-      - 有代理
+    - 有代理
             
-        ```javascript
-        const myImage = (() => {
-          const imgNode = document.createElement('img');
-          document.body.appendChild(imgNode);
+      ```javascript
+      const myImage = (() => {
+        const imgNode = document.createElement('img');
+        document.body.appendChild(imgNode);
           
-          return {
-            setSrc(src){
-              imgNode.src = src;
-            }
-          };
-        })();
+        return {
+          setSrc(src){
+            imgNode.src = src;
+          }
+        };
+      })();
         
-        const proxyImage = (() => {
-          const img = new Image;
-          img.onload = () => myImage.src = img.src;
+      const proxyImage = (() => {
+        const img = new Image;
+        img.onload = () => myImage.src = img.src;
         
-          return {
-            setSrc(src){
-              imgNode.src = 'loading.gif';
-              img.src = src;
-            }
-          };
-        })();
+        return {
+          setSrc(src){
+            imgNode.src = 'loading.gif';
+            img.src = src;
+          }
+        };
+      })();
         
-        proxyImage.setSrc('img1.jpg');
-        ```
+      proxyImage.setSrc('img1.jpg');
+      ```
         
         
    
