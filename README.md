@@ -1065,9 +1065,113 @@
 
 - 含义：提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部实现。
 
+- 类数组对象：拥有`length`属性而且可以通过下标访问，它可以被迭代。
+### 内部迭代器
 
+- 例子
 
+  ```javascript
+  function each(arr, callback){
+    for(var i = 0; i < arr.length; i++){
+      if(callback.call(arr[i], i, arr[i])){
+        break;
+      }
+    }
+  }
+  
+  each([1, 2, 3], (i) => console.info(i)); // 1, 2, 3
+  ```
+  
+  > 内部迭代器调用的时候很方便，外界不关心迭代器内部的实现，但刚好也是内部迭代器的缺点。由于内部迭代器的规则是提前规定的。
+  
+### 外部迭代器
 
+- 例子
+  
+  ```javascript
+  function iterator(arr){
+    let cur = 0;
+    function next(){
+      cur++;
+    }
+    function isDone(){
+      return cur >= arr.length;
+    }
+    function getCurItem(){
+      return arr[cur];
+    }
+    return { next, isDone, getCurItem};
+  }
+  
+  const iter = iterator([1, 2, 3]);
+  iterator.next();
+  iterator.getCurItem(); // 1
+  iterator.isDone(); // false
+  iterator.next();
+  iterator.getCurItem(); // 2
+  iterator.isDone(); // false
+  iterator.next();
+  iterator.getCurItem(); // 3
+  iterator.isDone(); // true
+  ```
+  
+  > 外部迭代器增加了调用的复杂度，但增强了迭代器的灵活性。
+
+### 迭代器的其他使用
+
+- 例子：通过用户类型显示不同的内容
+  
+  - 原方式
+  
+    ```javascript
+    function getUserContent(user){
+      if(user.isVip){
+        return new vipContent();
+      }else if(user.isRich){
+        return new richContent();
+      }else{
+        return 'invalid';
+      }
+    }
+    ```
+    
+  - 迭代器方式
+    
+    ```javascript
+    function getVipContent(){
+      try{
+        return new vipContent();
+      }catch(e){
+        return false;
+      }
+    }
+    function getIsRiceContent(){
+      try{
+        return new richContent();
+      }catch(e){
+        return false;
+      }
+    }
+    function getInvalidContent(){
+      try{
+        return 'invalid';
+      }catch(e){
+        return false;
+      }
+    }
+    
+    function iterator(...rest){
+      for(let i = 0; rest.length > i; i++){
+        if(arr() !== false){
+          return arr;
+        }
+      }
+    }
+    
+    const iter = iterator(getVipContent, getIsRiceContent, getInvalidContent);
+    ```
+    
+    > 每个函数互补干扰，去除`try` `catch` `if-else`分支。
 
 
 
