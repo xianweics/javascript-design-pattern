@@ -749,19 +749,15 @@
 
 ## 5 策略模式
 
-### 定义
+- 定义：定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。
 
-- 定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。
+- 目的：将算法的使用（不变）与算法的实现分离（可变）开来。
 
-### 目的
+- 组成
+  
+  - 环境类：接受用户的请求，随后将请求委托给某一个策略类。
 
-- 将算法的使用（不变）与算法的实现分离（可变）开来。
-
-### 组成
-
-- 环境类：接受用户的请求，随后将请求委托给某一个策略类。
-
-- 策略类：封装了具体的算法，并负责具体的计算过程。
+  - 策略类：封装了具体的算法，并负责具体的计算过程。
 
 ### 例子
 
@@ -1066,6 +1062,7 @@
 - 含义：提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部实现。
 
 - 类数组对象：拥有`length`属性而且可以通过下标访问，它可以被迭代。
+
 ### 内部迭代器
 
 - 例子
@@ -1172,6 +1169,173 @@
     ```
     
     > 每个函数互补干扰，去除`try` `catch` `if-else`分支。
+
+## 8 发布-订阅模式
+
+- 定义：又称观察者模式。它定义对象间的一种一对多的依赖关系，当一个对象的状态发生改变时所有依赖于它的对象都将得到变化。
+
+### 应用
+
+- 可广泛应用于异步编程，是一种替代传递回调函数的方式。
+
+- 可取代对象之间的硬编码的通知机制，让两个对象松耦合地联系在一起。
+  
+### 实现方式
+
+1. 指定谁充当发布者，
+2. 给发布者添加一个缓存列表，用于存放回调函数以便通知订阅者，
+3. 发布消息的时候，发布者会遍历缓存列表，依次触发里面存放的回调函数（回调函数里可填充一些参数，订阅者可以接收这些参数）。
+
+### 例子：简单的发布订阅者模式
+
+```javascript
+document.body.addEventListener('click', () => {
+console.info('click body');
+});
+  
+document.body.click(); // click body
+```
+
+### 例子：通用模式
+
+```javascript
+const event = (() => {
+const clientList = {};
+    
+const listen = (key, fn) => {
+  clientList[key] = clientList[key] || [];
+  clientList[key].push(fn);
+};
+const trigger = (key, ...rest) => {
+  const fns = clientList[key] || [];
+  fns.forEach(fn => fn(rest));
+};
+const remove = (key, fn) => {
+  const fns = clientList[key] || [];
+  if(fn){
+    clientList[key] = fns.map(item => item !== fn);
+  }else{
+    clientList[key] = [];
+  }
+};
+    
+return {
+  listen,
+  trigger,
+  remove
+};
+})();
+  
+const event1fn = (arg) => {console.info(arg)};
+event.listen('event1', event1fn);
+event.trigger('event1', 'call event 1'); // call event 1
+```
+
+### 例子：先发布再订阅
+
+```javascript
+const event = (() => {
+const clientList = {};
+const offlineList = {};
+    
+const listen = (key, fn) => {
+  clientList[key] = clientList[key] || [];
+  clientList[key].push(fn);
+  noticeOffline(key, fn);
+};
+const noticeOffline = (key, fn) => {
+  const fns = offlineList[key] || [];
+  fns.forEach(infos => fn(infos));
+};
+const trigger = (key, ...rest) => {
+  const fns = clientList[key] || [];
+  fns.forEach(fn => fn(rest));
+  if(fns.length === 0){
+    addOffline(key, ...rest);
+  }
+};
+const addOffline = (key, ...rest) => {
+  offlineList[key] = offlineList[key] || [];
+  offlineList[key].push(rest);
+};
+const remove = (key, fn) => {
+  const fns = clientList[key] || [];
+  if(fn){
+    clientList[key] = fns.map(item => item !== fn);
+  }else{
+    clientList[key] = [];
+  }
+  offlineList[key] = []
+};
+    
+return {
+  listen,
+  trigger,
+  remove
+};
+})();
+  
+event.trigger('event1', 'call event 1');
+const event1fn = (arg) => {console.info(arg)}; 
+event.listen('event1', event1fn); // call event 1
+```
+
+## 9 适配器模式
+
+- 解决两个软件实体间的接口不兼容的问题。
+
+### 例子
+
+```javascript
+// 原本的数据结构
+function getGuangdongCity(){
+  return [
+    {
+      name: 'shenzhen',
+      id: '01'
+    },
+    {
+      name: 'guangzhou',
+      id: '02'
+    }
+  ];
+}
+function render(fn){
+  console.info(fn());
+}
+render(getGuangdongCity()) // [{...},{...}]
+// 新的数据结构
+function getGuangdongCity(){
+  return {
+    shenzhen: '01',
+    guangzhou: '02'
+  };
+}
+
+// 适配器
+function addressAdapter(old){
+  const address = {};
+  old.forEach(item => address[item.name] = item.id);
+  return address;
+}
+
+render(addressAdapter(getGuangdongCity())); // {...}
+```
+
+> 适配器模式、装饰者模式、代理模式都不改变原有对象的接口。
+> 适配器模式主要解决两个已有接口之间的不匹配问题。
+> 装饰者模式主要给对象增加功能。
+> 代理模式主要控制对象的访问。
+
+
+
+
+
+
+
+
+
+
 
 
 
