@@ -1188,97 +1188,97 @@
 
 ### 例子：简单的发布订阅者模式
 
-```javascript
-document.body.addEventListener('click', () => {
-console.info('click body');
-});
-  
-document.body.click(); // click body
-```
+	```javascript
+	document.body.addEventListener('click', () => {
+	console.info('click body');
+	});
+
+	document.body.click(); // click body
+	```
 
 ### 例子：通用模式
 
-```javascript
-const event = (() => {
-const clientList = {};
-    
-const listen = (key, fn) => {
-  clientList[key] = clientList[key] || [];
-  clientList[key].push(fn);
-};
-const trigger = (key, ...rest) => {
-  const fns = clientList[key] || [];
-  fns.forEach(fn => fn(rest));
-};
-const remove = (key, fn) => {
-  const fns = clientList[key] || [];
-  if(fn){
-    clientList[key] = fns.map(item => item !== fn);
-  }else{
-    clientList[key] = [];
-  }
-};
-    
-return {
-  listen,
-  trigger,
-  remove
-};
-})();
-  
-const event1fn = (arg) => {console.info(arg)};
-event.listen('event1', event1fn);
-event.trigger('event1', 'call event 1'); // call event 1
-```
+	```javascript
+	const event = (() => {
+	const clientList = {};
+
+	const listen = (key, fn) => {
+		clientList[key] = clientList[key] || [];
+		clientList[key].push(fn);
+	};
+	const trigger = (key, ...rest) => {
+		const fns = clientList[key] || [];
+		fns.forEach(fn => fn(rest));
+	};
+	const remove = (key, fn) => {
+		const fns = clientList[key] || [];
+		if(fn){
+			clientList[key] = fns.map(item => item !== fn);
+		}else{
+			clientList[key] = [];
+		}
+	};
+
+	return {
+		listen,
+		trigger,
+		remove
+	};
+	})();
+
+	const event1fn = (arg) => {console.info(arg)};
+	event.listen('event1', event1fn);
+	event.trigger('event1', 'call event 1'); // call event 1
+	```
 
 ### 例子：先发布再订阅
 
-```javascript
-const event = (() => {
-const clientList = {};
-const offlineList = {};
-    
-const listen = (key, fn) => {
-  clientList[key] = clientList[key] || [];
-  clientList[key].push(fn);
-  noticeOffline(key, fn);
-};
-const noticeOffline = (key, fn) => {
-  const fns = offlineList[key] || [];
-  fns.forEach(infos => fn(infos));
-};
-const trigger = (key, ...rest) => {
-  const fns = clientList[key] || [];
-  fns.forEach(fn => fn(rest));
-  if(fns.length === 0){
-    addOffline(key, ...rest);
-  }
-};
-const addOffline = (key, ...rest) => {
-  offlineList[key] = offlineList[key] || [];
-  offlineList[key].push(rest);
-};
-const remove = (key, fn) => {
-  const fns = clientList[key] || [];
-  if(fn){
-    clientList[key] = fns.map(item => item !== fn);
-  }else{
-    clientList[key] = [];
-  }
-  offlineList[key] = []
-};
-    
-return {
-  listen,
-  trigger,
-  remove
-};
-})();
-  
-event.trigger('event1', 'call event 1');
-const event1fn = (arg) => {console.info(arg)}; 
-event.listen('event1', event1fn); // call event 1
-```
+	```javascript
+	const event = (() => {
+	const clientList = {};
+	const offlineList = {};
+
+	const listen = (key, fn) => {
+		clientList[key] = clientList[key] || [];
+		clientList[key].push(fn);
+		noticeOffline(key, fn);
+	};
+	const noticeOffline = (key, fn) => {
+		const fns = offlineList[key] || [];
+		fns.forEach(infos => fn(infos));
+	};
+	const trigger = (key, ...rest) => {
+		const fns = clientList[key] || [];
+		fns.forEach(fn => fn(rest));
+		if(fns.length === 0){
+			addOffline(key, ...rest);
+		}
+	};
+	const addOffline = (key, ...rest) => {
+		offlineList[key] = offlineList[key] || [];
+		offlineList[key].push(rest);
+	};
+	const remove = (key, fn) => {
+		const fns = clientList[key] || [];
+		if(fn){
+			clientList[key] = fns.map(item => item !== fn);
+		}else{
+			clientList[key] = [];
+		}
+		offlineList[key] = []
+	};
+
+	return {
+		listen,
+		trigger,
+		remove
+	};
+	})();
+
+	event.trigger('event1', 'call event 1');
+	const event1fn = (arg) => {console.info(arg)}; 
+	event.listen('event1', event1fn); // call event 1
+	```
 
 ## 9 适配器模式
 
@@ -1286,41 +1286,41 @@ event.listen('event1', event1fn); // call event 1
 
 ### 例子
 
-```javascript
-// 原本的数据结构
-function getGuangdongCity(){
-  return [
-    {
-      name: 'shenzhen',
-      id: '01'
-    },
-    {
-      name: 'guangzhou',
-      id: '02'
-    }
-  ];
-}
-function render(fn){
-  console.info(fn());
-}
-render(getGuangdongCity()) // [{...},{...}]
-// 新的数据结构
-function getGuangdongCity(){
-  return {
-    shenzhen: '01',
-    guangzhou: '02'
-  };
-}
+	```javascript
+	// 原本的数据结构
+	function getGuangdongCity(){
+		return [
+			{
+				name: 'shenzhen',
+				id: '01'
+			},
+			{
+				name: 'guangzhou',
+				id: '02'
+			}
+		];
+	}
+	function render(fn){
+		console.info(fn());
+	}
+	render(getGuangdongCity()) // [{...},{...}]
+	// 新的数据结构
+	function getGuangdongCity(){
+		return {
+			shenzhen: '01',
+			guangzhou: '02'
+		};
+	}
 
-// 适配器
-function addressAdapter(old){
-  const address = {};
-  old.forEach(item => address[item.name] = item.id);
-  return address;
-}
+	// 适配器
+	function addressAdapter(old){
+		const address = {};
+		old.forEach(item => address[item.name] = item.id);
+		return address;
+	}
 
-render(addressAdapter(getGuangdongCity())); // {...}
-```
+	render(addressAdapter(getGuangdongCity())); // {...}
+	```
 
 > 适配器模式、装饰者模式、代理模式都不改变原有对象的接口。
 > 适配器模式主要解决两个已有接口之间的不匹配问题。
